@@ -138,7 +138,7 @@
           "queryText": "SELECT time AS \"time\", COUNT(DISTINCT ip) AS \"value\" FROM hosts WHERE $__timeFilter(time) GROUP BY time ORDER BY time",
           "queryType": "table",
           "rawQuery": true,
-          "rawSql": "SELECT \n  time AS \"time\",\n  COUNT(DISTINCT ip) AS \"value\"\nFROM hosts\nWHERE time = (SELECT MAX(time) FROM hosts WHERE $__timeFilter(time))\n  AND $__timeFilter(time)\nGROUP BY time;\n",
+          "rawSql": "WITH latest_time AS (\n  SELECT MAX(h.time) AS max_time\n  FROM hosts h\n  WHERE $__timeFilter(h.time)\n)\nSELECT\n  lt.max_time           AS \"time\",\n  COUNT(DISTINCT h.ip)  AS \"value\"\nFROM hosts h\nJOIN latest_time lt\n  ON h.time = lt.max_time\nGROUP BY lt.max_time\nORDER BY lt.max_time;\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -272,7 +272,7 @@
           "queryType": "table",
           "rawQuery": true,
           "rawQueryText": "    \nSELECT\n  os,\n  COUNT(*) AS \"count\"\nFROM hosts\nWHERE start_time >= $__from AND end_time < $__to\nGROUP BY os\nORDER BY count DESC;\n\n    \n",
-          "rawSql": "SELECT\n  os,\n  COUNT(DISTINCT ip) AS \"count\"\nFROM hosts\nWHERE $__timeFilter(time)\nGROUP BY os\nORDER BY count DESC;\n",
+          "rawSql": "WITH latest_time AS (\n  SELECT MAX(time) AS max_time\n  FROM hosts\n  WHERE $__timeFilter(time)\n)\nSELECT\n  h.os,\n  COUNT(DISTINCT h.ip) AS \"count\"\nFROM hosts h\nJOIN latest_time lt\n  ON h.time = lt.max_time\nGROUP BY h.os\nORDER BY \"count\" DESC;\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -362,7 +362,7 @@
           "queryType": "table",
           "rawQuery": true,
           "rawQueryText": "SELECT p.port, COUNT(*) AS count\nFROM ports p\nJOIN hosts h ON p.host_id = h.id\nWHERE h.start_time >= $__from AND h.end_time < $__to\n AND p.service_info = '' AND p.state = 'open'\nGROUP BY p.port",
-          "rawSql": "SELECT\n  p.port,\n  COUNT(DISTINCT h.ip) AS \"count\"\nFROM\n  ports p\n  JOIN hosts h ON p.host_id = h.id\nWHERE\n  $__timeFilter(h.time)\n  AND p.service_info = ''\n  AND p.state = 'open'\nGROUP BY\n  p.port\nORDER BY\n  count DESC;\n",
+          "rawSql": "WITH latest_time AS (\n  SELECT MAX(h.time) AS max_time\n  FROM hosts h\n  WHERE $__timeFilter(h.time)\n)\nSELECT\n  p.port,\n  COUNT(DISTINCT h.ip) AS \"count\"\nFROM ports p\nJOIN hosts h ON p.host_id = h.id\nJOIN latest_time lt ON h.time = lt.max_time\nWHERE\n  p.service_info = ''\n  AND p.state = 'open'\nGROUP BY p.port\nORDER BY \"count\" DESC;\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -477,7 +477,7 @@
           "queryType": "table",
           "rawQuery": true,
           "rawQueryText": "SELECT p.service_info, COUNT(*) AS count\nFROM ports p\nJOIN hosts h ON p.host_id = h.id\nWHERE h.start_time >= $__from AND h.end_time < $__to\nAND p.service_info IS NOT NULL AND p.service_info <> ''\nGROUP BY p.service_info\n",
-          "rawSql": "SELECT\n  p.service_info,\n  COUNT(DISTINCT h.ip) AS count\nFROM ports p\nJOIN hosts h ON p.host_id = h.id\nWHERE $__timeFilter(h.time)\n  AND p.service_info IS NOT NULL\nGROUP BY p.service_info\nORDER BY count DESC;\n",
+          "rawSql": "WITH latest_time AS (\n  SELECT MAX(h.time) AS max_time\n  FROM hosts h\n  WHERE $__timeFilter(h.time)\n)\nSELECT\n  p.service_info,\n  COUNT(DISTINCT h.ip) AS count\nFROM ports p\nJOIN hosts h ON p.host_id = h.id\nJOIN latest_time lt ON h.time = lt.max_time\nWHERE\n  p.service_info IS NOT NULL\nGROUP BY p.service_info\nORDER BY count DESC;\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -568,8 +568,8 @@
           "queryType": "table",
           "rawQuery": true,
           "rawQueryText": "SELECT\n  COUNT(DISTINCT p.port) AS \"Unique Ports\"\nFROM ports p\nJOIN hosts h ON p.host_id = h.id\nWHERE h.start_time >= $__from AND h.end_time < $__to AND p.state is 'open'\n",
-          "rawSql": "WITH latest_time AS (\n  SELECT MAX(date_trunc('second', h.time)) AS max_time\n  FROM hosts h\n  WHERE $__timeFilter(h.time)\n)\nSELECT\n  date_trunc('second', h.time) AS \"time\",\n  COUNT(DISTINCT p.port) AS \"value\"\nFROM ports p\nJOIN hosts h ON p.host_id = h.id\nJOIN latest_time lt ON date_trunc('second', h.time) = lt.max_time\nWHERE p.state = 'open'\n  AND $__timeFilter(h.time)\nGROUP BY 1\nORDER BY 1;\n",
-          "refId": "SELECT   COUNT(DISTINCT p.port) AS \"Unique Ports\" FROM ports p JOIN hosts h ON p.host_id = h.id WHERE h.start_time >= $__from AND h.end_time < $__to",
+          "rawSql": "WITH latest_time AS (\n  SELECT MAX(date_trunc('second', h.time)) AS max_time\n  FROM hosts h\n  WHERE $__timeFilter(h.time)\n)\nSELECT\n  lt.max_time                 AS \"time\",\n  COUNT(DISTINCT p.port)      AS \"value\"\nFROM ports p\nJOIN hosts h\n  ON p.host_id = h.id\nJOIN latest_time lt\n  ON date_trunc('second', h.time) = lt.max_time\nWHERE\n  p.state = 'open'\nGROUP BY lt.max_time\nORDER BY lt.max_time;\n",
+          "refId": "A",
           "sql": {
             "columns": [
               {
@@ -659,7 +659,7 @@
           "queryType": "table",
           "rawQuery": true,
           "rawQueryText": "SELECT SUM(unique_open_ports) AS total_unique_open_ports\nFROM (\n  SELECT\n    COUNT(DISTINCT p.port) AS unique_open_ports,\n    h.ip AS host_ip\n  FROM ports p\n  JOIN hosts h ON p.host_id = h.id\n  WHERE p.state = 'open' AND h.start_time >= $__from AND h.end_time < $__to\n  GROUP BY h.ip, p.port\n) AS subquery;\n    ",
-          "rawSql": "WITH unique_ports AS (\n  SELECT\n    h.time,\n    h.ip,\n    COUNT(DISTINCT p.port) AS unique_open_ports\n  FROM\n    ports p\n    JOIN hosts h ON p.host_id = h.id\n  WHERE\n    p.state = 'open'\n    AND $__timeFilter(h.time)\n  GROUP BY\n    h.time,\n    h.ip\n),\nlatest_time AS (\n  SELECT MAX(time) AS max_time FROM unique_ports\n)\nSELECT\n  up.time AS \"time\",\n  SUM(up.unique_open_ports) AS \"value\"\nFROM unique_ports up\nJOIN latest_time lt ON up.time = lt.max_time\nGROUP BY up.time;\n",
+          "rawSql": "WITH unique_ports AS (\n  SELECT\n    h.time,\n    h.ip,\n    COUNT(DISTINCT p.port) AS unique_open_ports\n  FROM\n    ports p\n    JOIN hosts h ON p.host_id = h.id\n  WHERE\n    p.state = 'open'\n    AND $__timeFilter(h.time)\n  GROUP BY\n    h.time,\n    h.ip\n),\nlatest_time AS (\n  SELECT\n    MAX(time) AS max_time\n  FROM\n    unique_ports\n)\nSELECT\n  lt.max_time AS \"time\",\n  SUM(up.unique_open_ports) AS \"value\"\nFROM\n  unique_ports up\n  JOIN latest_time lt ON up.time = lt.max_time\nGROUP BY\n  lt.max_time;",
           "refId": "A",
           "sql": {
             "columns": [
@@ -778,7 +778,7 @@
           "queryType": "table",
           "rawQuery": true,
           "rawQueryText": "SELECT\n  p.port,\n  COUNT(DISTINCT h.ip) AS host_count\nFROM\n  hosts h\n  JOIN ports p ON h.id = p.host_id\nWHERE\n  p.state = 'open' AND h.start_time >= $__from AND h.end_time < $__to\nGROUP BY\n  p.port;",
-          "rawSql": "SELECT\n  p.port,\n COUNT(DISTINCT h.ip) AS host_count\nFROM hosts h\nJOIN ports p ON h.id = p.host_id\nWHERE p.state = 'open'\n  AND $__timeFilter(h.time)\nGROUP BY p.port",
+          "rawSql": "WITH latest_time AS (\n  SELECT MAX(h.time) AS max_time\n  FROM hosts h\n  WHERE $__timeFilter(h.time)\n)\nSELECT\n  p.port,\n  COUNT(DISTINCT h.ip) AS host_count\nFROM hosts h\nJOIN ports p ON h.id = p.host_id\nJOIN latest_time lt ON h.time = lt.max_time\nWHERE p.state = 'open'\nGROUP BY p.port\nORDER BY host_count DESC;\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1073,7 +1073,7 @@
           "queryType": "table",
           "rawQuery": true,
           "rawQueryText": "SELECT ip, hostname, ports_tested, ports_open, ports_closed, ports_filtered FROM hosts\nWHERE start_time >= $__from AND end_time < $__to",
-          "rawSql": "SELECT DISTINCT ON (ip)\n  ip,\n  hostname,\n  ports_tested,\n  ports_open,\n  ports_closed,\n  ports_filtered,\n  time\nFROM hosts\nWHERE $__timeFilter(time)\nORDER BY ip, time DESC;\n",
+          "rawSql": "WITH latest_time AS (\n  SELECT MAX(time) AS max_time\n  FROM hosts\n  WHERE $__timeFilter(time)\n)\nSELECT\n  ip,\n  hostname,\n  ports_tested,\n  ports_open,\n  ports_closed,\n  ports_filtered,\n  time\nFROM hosts\nWHERE time = (SELECT max_time FROM latest_time)\nORDER BY ip;\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1386,8 +1386,8 @@
         "showHeader": true,
         "sortBy": [
           {
-            "desc": true,
-            "displayName": "time"
+            "desc": false,
+            "displayName": "port"
           }
         ]
       },
@@ -1404,7 +1404,7 @@
           "queryType": "table",
           "rawQuery": true,
           "rawQueryText": "SELECT h.ip, p.protocol, p.port, p.service_info, p.http_title, p.ssl_common_name, p.ssl_issuer\nFROM ports p\nJOIN hosts h ON p.host_id = h.id\nWHERE h.start_time >= $__from AND h.end_time < $__to\nAND p.state = 'open'\n",
-          "rawSql": "SELECT DISTINCT ON (h.ip, p.port)\n  h.time                 AS \"time\",\n  h.ip                   AS \"ip\",\n  p.protocol             AS \"protocol\",\n  p.port                 AS \"port\",\n  p.service_info         AS \"service_info\",\n  p.http_title           AS \"http_title\",\n  p.ssl_common_name      AS \"ssl_common_name\",\n  p.ssl_issuer           AS \"ssl_issuer\"\nFROM ports p\nJOIN hosts h ON p.host_id = h.id\nWHERE\n  p.state = 'open'\n  AND $__timeFilter(h.time)\nORDER BY h.ip, p.port, h.time DESC;\n",
+          "rawSql": "WITH last_time AS (\n  SELECT\n    MAX(h.time) AS t\n  FROM\n    hosts h\n  WHERE\n    $__timeFilter(h.time)\n)\nSELECT\n  h.time AS \"time\",\n  h.ip AS \"ip\",\n  p.protocol AS \"protocol\",\n  p.port AS \"port\",\n  p.service_info AS \"service_info\",\n  p.http_title AS \"http_title\",\n  p.ssl_common_name AS \"ssl_common_name\",\n  p.ssl_issuer AS \"ssl_issuer\"\nFROM\n  ports p\n  JOIN hosts h ON p.host_id = h.id\n  CROSS JOIN last_time lt\nWHERE\n  p.state = 'open'\n  AND h.time = lt.t\nORDER BY\n  h.ip,\n  p.port;",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1628,6 +1628,6 @@
   "timezone": "browser",
   "title": "Nmap Dashboard",
   "uid": "cdikljcadaf40c",
-  "version": 43,
+  "version": 53,
   "weekStart": ""
 }
