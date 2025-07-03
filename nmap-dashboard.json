@@ -401,7 +401,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "auto",
+            "align": "left",
             "cellOptions": {
               "type": "auto"
             },
@@ -908,7 +908,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "auto",
+            "align": "left",
             "cellOptions": {
               "type": "auto"
             },
@@ -1443,7 +1443,7 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "auto",
+            "align": "left",
             "cellOptions": {
               "type": "auto"
             },
@@ -1628,6 +1628,6 @@
   "timezone": "browser",
   "title": "Nmap Dashboard",
   "uid": "cdikljcadaf40c",
-  "version": 37,
+  "version": 40,
   "weekStart": ""
 }
