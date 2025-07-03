@@ -1186,7 +1186,7 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom",
+          "placement": "right",
           "showLegend": true
         },
         "tooltip": {
@@ -1203,12 +1203,12 @@
             "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
           },
           "editorMode": "code",
-          "format": "table",
+          "format": "time_series",
           "queryText": "SELECT\n  start_time AS \"time\",\n  total_open_ports AS \"open_ports\",\n  total_hosts\nFROM scans\nWHERE\n  start_time >= $__from / 1000\n  AND start_time + elapsed_time < $__to / 1000\nORDER BY start_time",
           "queryType": "table",
           "rawQuery": true,
           "rawQueryText": "SELECT\n  start_time AS \"time\",\n  total_open_ports AS \"open_ports\",\n  total_hosts\nFROM scans\nWHERE\n  start_time >= $__from / 1000\n  AND start_time + elapsed_time < $__to / 1000\nORDER BY start_time",
-          "rawSql": "WITH uniq_hosts AS (\n  SELECT\n    h.time,\n    h.ip,\n    MAX(h.ports_open) AS ports_open  -- если один ip повторяется, берём одно значение\n  FROM hosts h\n  WHERE $__timeFilter(h.time)\n  GROUP BY h.time, h.ip\n)\nSELECT\n  time AS \"time\",\n  COUNT(*) AS \"hosts\",\n  SUM(ports_open) AS \"open_ports\"\nFROM uniq_hosts\nGROUP BY time\nORDER BY time;\n",
+          "rawSql": "WITH uniq_hosts AS (\n  SELECT\n    h.time,\n    h.ip,\n    MAX(h.ports_open) AS ports_open\n  FROM hosts h\n  WHERE $__timeFilter(h.time)\n  GROUP BY h.time, h.ip\n)\nSELECT\n  time AS \"time\",\n  COUNT(*) AS \"hosts\",\n  SUM(ports_open) AS \"open_ports\"\nFROM uniq_hosts\nGROUP BY time\nORDER BY time;\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1386,8 +1386,8 @@
         "showHeader": true,
         "sortBy": [
           {
-            "desc": false,
-            "displayName": "http_title"
+            "desc": true,
+            "displayName": "time"
           }
         ]
       },
@@ -1583,7 +1583,7 @@
           "queryType": "table",
           "rawQuery": true,
           "rawQueryText": "SELECT\n  datetime(start_time, 'unixepoch') AS start_time_utc,\n  nmap_version,\n  command_line,\n  elapsed_time,\n  total_hosts,\n  total_open_ports\nFROM scans\nWHERE\n  start_time >= $__from / 1000\n  AND start_time + elapsed_time < $__to / 1000",
-          "rawSql": "SELECT\n  start_time                      AS \"time\",\n  nmap_version,\n  command_line,\n  elapsed_time,\n  total_hosts,\n  total_open_ports\nFROM scans\nWHERE $__timeFilter(start_time)\nORDER BY start_time;\n",
+          "rawSql": "SELECT\n  start_time                      AS \"time\",\n  nmap_version,\n  command_line,\n  elapsed_time,\n  total_hosts,\n  total_open_ports\nFROM scans\nWHERE $__timeFilter(start_time)\nORDER BY start_time DESC;\n",
           "refId": "A",
           "sql": {
             "columns": [
@@ -1621,13 +1621,13 @@
     "list": []
   },
   "time": {
-    "from": "now-3h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Nmap Dashboard",
   "uid": "cdikljcadaf40c",
-  "version": 40,
+  "version": 43,
   "weekStart": ""
 }
