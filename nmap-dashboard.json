@@ -18,12 +18,6 @@
       "version": ""
     },
     {
-      "type": "panel",
-      "id": "bargauge",
-      "name": "Bar gauge",
-      "version": ""
-    },
-    {
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
@@ -530,97 +524,6 @@
               },
               {
                 "color": "light-purple",
-                "value": 5
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 3,
-        "w": 2,
-        "x": 0,
-        "y": 3
-      },
-      "id": 8,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": true
-        },
-        "showPercentChange": false,
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "queryText": "SELECT SUM(unique_open_ports) AS total_unique_open_ports\nFROM (\n  SELECT\n    COUNT(DISTINCT p.port) AS unique_open_ports,\n    h.ip AS host_ip\n  FROM ports p\n  JOIN hosts h ON p.host_id = h.id\n  WHERE p.state = 'open' AND h.start_time >= $__from AND h.end_time < $__to\n  GROUP BY h.ip, p.port\n) AS subquery;\n    ",
-          "queryType": "table",
-          "rawQuery": true,
-          "rawQueryText": "SELECT SUM(unique_open_ports) AS total_unique_open_ports\nFROM (\n  SELECT\n    COUNT(DISTINCT p.port) AS unique_open_ports,\n    h.ip AS host_ip\n  FROM ports p\n  JOIN hosts h ON p.host_id = h.id\n  WHERE p.state = 'open' AND h.start_time >= $__from AND h.end_time < $__to\n  GROUP BY h.ip, p.port\n) AS subquery;\n    ",
-          "rawSql": "WITH unique_ports AS (\n  SELECT\n    h.time,\n    h.ip,\n    COUNT(DISTINCT p.port) AS unique_open_ports\n  FROM\n    ports p\n    JOIN hosts h ON p.host_id = h.id\n  WHERE\n    p.state = 'open'\n    AND $__timeFilter(h.time)\n  GROUP BY\n    h.time,\n    h.ip\n),\nlatest_time AS (\n  SELECT MAX(time) AS max_time FROM unique_ports\n)\nSELECT\n  up.time AS \"time\",\n  SUM(up.unique_open_ports) AS \"value\"\nFROM unique_ports up\nJOIN latest_time lt ON up.time = lt.max_time\nGROUP BY up.time;\n",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          },
-          "timeColumns": [
-            "time",
-            "ts"
-          ]
-        }
-      ],
-      "title": "Open Ports",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#4ecda7"
-              },
-              {
-                "color": "light-purple",
                 "value": 80
               }
             ]
@@ -632,7 +535,7 @@
         "h": 3,
         "w": 2,
         "x": 0,
-        "y": 6
+        "y": 3
       },
       "id": 7,
       "options": {
@@ -691,6 +594,97 @@
         }
       ],
       "title": "Unique Ports",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#4ecda7"
+              },
+              {
+                "color": "light-purple",
+                "value": 5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 0,
+        "y": 6
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "queryText": "SELECT SUM(unique_open_ports) AS total_unique_open_ports\nFROM (\n  SELECT\n    COUNT(DISTINCT p.port) AS unique_open_ports,\n    h.ip AS host_ip\n  FROM ports p\n  JOIN hosts h ON p.host_id = h.id\n  WHERE p.state = 'open' AND h.start_time >= $__from AND h.end_time < $__to\n  GROUP BY h.ip, p.port\n) AS subquery;\n    ",
+          "queryType": "table",
+          "rawQuery": true,
+          "rawQueryText": "SELECT SUM(unique_open_ports) AS total_unique_open_ports\nFROM (\n  SELECT\n    COUNT(DISTINCT p.port) AS unique_open_ports,\n    h.ip AS host_ip\n  FROM ports p\n  JOIN hosts h ON p.host_id = h.id\n  WHERE p.state = 'open' AND h.start_time >= $__from AND h.end_time < $__to\n  GROUP BY h.ip, p.port\n) AS subquery;\n    ",
+          "rawSql": "WITH unique_ports AS (\n  SELECT\n    h.time,\n    h.ip,\n    COUNT(DISTINCT p.port) AS unique_open_ports\n  FROM\n    ports p\n    JOIN hosts h ON p.host_id = h.id\n  WHERE\n    p.state = 'open'\n    AND $__timeFilter(h.time)\n  GROUP BY\n    h.time,\n    h.ip\n),\nlatest_time AS (\n  SELECT MAX(time) AS max_time FROM unique_ports\n)\nSELECT\n  up.time AS \"time\",\n  SUM(up.unique_open_ports) AS \"value\"\nFROM unique_ports up\nJOIN latest_time lt ON up.time = lt.max_time\nGROUP BY up.time;\n",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "timeColumns": [
+            "time",
+            "ts"
+          ]
+        }
+      ],
+      "title": "Open Ports",
       "type": "stat"
     },
     {
@@ -1182,7 +1176,7 @@
         ]
       },
       "gridPos": {
-        "h": 6,
+        "h": 15,
         "w": 9,
         "x": 15,
         "y": 12
@@ -1241,107 +1235,6 @@
       ],
       "title": "Live Hosts and Open Ports over Time",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "grafana-postgresql-datasource",
-        "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
-      },
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "fieldMinMax": false,
-          "mappings": [],
-          "thresholds": {
-            "mode": "percentage",
-            "steps": [
-              {
-                "color": "#4ecda7"
-              },
-              {
-                "color": "light-purple",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 9,
-        "x": 15,
-        "y": 18
-      },
-      "id": 15,
-      "options": {
-        "displayMode": "gradient",
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "maxVizHeight": 300,
-        "minVizHeight": 16,
-        "minVizWidth": 8,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [],
-          "fields": "",
-          "values": true
-        },
-        "showUnfilled": true,
-        "sizing": "auto",
-        "text": {
-          "titleSize": 11
-        },
-        "valueMode": "color"
-      },
-      "pluginVersion": "12.0.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "grafana-postgresql-datasource",
-            "uid": "${DS_GRAFANA-POSTGRESQL-DATASOURCE}"
-          },
-          "editorMode": "code",
-          "format": "table",
-          "queryText": "SELECT ip, \n       (ports_tested * 1.0) / ((end_time - start_time) / 1000) AS avg_ports_per_second\nFROM hosts\nWHERE start_time >= $__from AND end_time < $__to AND ports_tested IS NOT NULL\nORDER BY ip;",
-          "queryType": "table",
-          "rawQuery": true,
-          "rawQueryText": "SELECT ip, \n       (ports_tested * 1.0) / ((end_time - start_time) / 1000) AS avg_ports_per_second\nFROM hosts\nWHERE start_time >= $__from AND end_time < $__to AND ports_tested IS NOT NULL\nORDER BY ip;",
-          "rawSql": "SELECT DISTINCT ON (ip)\n  h.time           AS \"time\",\n  h.ports_tested   AS \"value\",\n  h.ip             AS \"host\"\nFROM hosts h\nWHERE $__timeFilter(h.time)\nORDER BY h.ip;\n",
-          "refId": "A",
-          "sql": {
-            "columns": [
-              {
-                "parameters": [],
-                "type": "function"
-              }
-            ],
-            "groupBy": [
-              {
-                "property": {
-                  "type": "string"
-                },
-                "type": "groupBy"
-              }
-            ],
-            "limit": 50
-          },
-          "timeColumns": [
-            "time",
-            "ts"
-          ]
-        }
-      ],
-      "title": "Port Tested Per Second by Host",
-      "type": "bargauge"
     },
     {
       "datasource": {
@@ -1735,6 +1628,6 @@
   "timezone": "browser",
   "title": "Nmap Dashboard",
   "uid": "cdikljcadaf40c",
-  "version": 36,
+  "version": 37,
   "weekStart": ""
 }
