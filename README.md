@@ -46,4 +46,4 @@ You can also automate this process with cron or custom scripts.
 
 ## Credits
 - Original project by [HackerTarget](https://github.com/hackertarget)
-- PostgreSQL adaptation and Grafana support by [Monliker2](https://github.com/Monliker2)
+- PostgreSQL adaptation by [Monliker2](https://github.com/Monliker2)
